@@ -8,9 +8,10 @@ using Microsoft.Extensions.Hosting;
 using NSE.Identidade.API.Data;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using NSE.Identidade.API.Extensions;
 
 namespace NSE.Identidade.API
 {
@@ -33,7 +34,34 @@ namespace NSE.Identidade.API
             services.AddDefaultIdentity<IdentityUser>()
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders(); 
+                .AddDefaultTokenProviders();
+
+            // JWT
+            var appSettingsSection = Configuration.GetSection("AppSettings"); //Acessa o arq de configuração e pega o nó AppSettings
+            services.Configure<AppSettings>(appSettingsSection); //Configura para que a classe appSettings represente os dados da sessão appSettingsSection
+
+            var appSettings = appSettingsSection.Get<AppSettings>(); //Representa a classe AppSettings
+            var key = Encoding.ASCII.GetBytes(appSettings.Secret); //Chave transformada em sequencia de bytes para que futuramente seja utilizada na IssuerSigninKey
+
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(bearerOptions => // Adionando suporte pra esse tipo de token
+            {
+                bearerOptions.RequireHttpsMetadata = true; //Requer acesso HTTPS
+                bearerOptions.SaveToken = true; //Token vai ser guardado na instância assim que o login for realizado com sucesso
+                bearerOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters //Param. de validação do token
+                {
+                    ValidateIssuerSigningKey = true, //Valida o emissor com base na assinatura 
+                    IssuerSigningKey = new SymmetricSecurityKey(key), //A assinatura do emissor vai ser criada onde terá uma seq de bytes criando chave de criptografia
+                    ValidateIssuer = true, //Valida o emissor
+                    ValidateAudience = true, //Valida pra onde esse token é válido
+                    ValidAudience = appSettings.ValidoEm,
+                    ValidIssuer = appSettings.Emissor //Cria um emissor valido
+                };
+             });;
 
             services.AddControllers();
 
