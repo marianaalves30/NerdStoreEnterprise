@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using NSE.Identidade.API.Extensions;
 using NSE.WebApp.MVC.Extensions;
 using NSE.WebApp.MVC.Models;
 
@@ -14,7 +15,7 @@ namespace NSE.WebApp.MVC.Services
         public AutenticacaoService(HttpClient httpClient, 
                                    IOptions<AppSettings> settings)
         {
-            httpClient.BaseAddress = new Uri(settings.Value.AutenticacaoUrl);
+          //  httpClient.BaseAddress = new Uri(settings.Value.AutenticacaoUrl);
 
             _httpClient = httpClient;
         }
@@ -25,13 +26,13 @@ namespace NSE.WebApp.MVC.Services
 
             var response = await _httpClient.PostAsync("/api/identidade/autenticar", loginContent);
 
-            if (!TratarErrosResponse(response))
-            {
-                return new UsuarioRespostaLogin
-                {
-                    ResponseResult = await DeserializarObjetoResponse<ResponseResult>(response)
-                };
-            }
+            //if (!TratarErrosResponse(response))
+            //{
+            //    return new UsuarioRespostaLogin
+            //    {
+            //        ResponseResult = await DeserializarObjetoResponse<ResponseResult>(response)
+            //    };
+            //}
 
             return await DeserializarObjetoResponse<UsuarioRespostaLogin>(response);
         }
@@ -42,13 +43,13 @@ namespace NSE.WebApp.MVC.Services
 
             var response = await _httpClient.PostAsync("/api/identidade/nova-conta", registroContent);
 
-            if (!TratarErrosResponse(response))
-            {
-                return new UsuarioRespostaLogin
-                {
-                    ResponseResult = await DeserializarObjetoResponse<ResponseResult>(response)
-                };
-            }
+            //if (!TratarErrosResponse(response))
+            //{
+            //    return new UsuarioRespostaLogin
+            //    {
+            //        ResponseResult = await DeserializarObjetoResponse<ResponseResult>(response)
+            //    };
+            //}
 
             return await DeserializarObjetoResponse<UsuarioRespostaLogin>(response);
         }
